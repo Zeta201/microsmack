@@ -9,27 +9,24 @@ spec:
       - port: 12000
         targetPort: 12000
   github:
-    webhook:
-      # Dev workflow trigger
-      - name: push-event
-        endpoint: /push
-        port: "12000"
-        events:
-          - push
-        apiToken:
-          name: github-secret
-          key: token
-        owner: Zeta201
-        repository: microsmack
+    push-event:                    # handles push events
+      endpoint: /github            # 👈 same URL for both push + PR
+      port: "12000"
+      events:
+        - push
+      apiToken:
+        name: github-secret
+        key: token
+      owner: Zeta201
+      repository: microsmack
 
-      # Prod workflow trigger
-      - name: pull-request-event
-        endpoint: /pull-request
-        port: "12000"
-        events:
-          - pull_request
-        apiToken:
-          name: github-secret
-          key: token
-        owner: Zeta201
-        repository: microsmack
+    pull-request-event:            # handles PR events
+      endpoint: /github            # 👈 same URL
+      port: "12000"
+      events:
+        - pull_request
+      apiToken:
+        name: github-secret
+        key: token
+      owner: Zeta201
+      repository: microsmack
