@@ -3,26 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <title>Smack Web Frontend</title>
-  <script>
-    async function fetchVersion() {
-      try {
-        const response = await fetch("/api");
-
-        const text = await response.text();
-        document.getElementById("version").textContent = text;
-      } catch (err) {
-        document.getElementById("version").textContent = "Error fetching API.";
-        console.error(err);
-        console.log('Hi');
-      }
-    }
-  
-    window.onload = fetchVersion;
-  </script>  
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    h1 { color: #333; }
+    ul { list-style-type: none; padding: 0; }
+    li { padding: 0.5rem 0; }
+    button { margin-left: 0.5rem; }
+    input, button { padding: 0.5rem; font-size: 1rem; }
+    .task-done { text-decoration: line-through; color: gray; }
+  </style>
 </head>
 <body>
-  <h1>Hello there</h1>
-  <p>API Response that we received:</p>
-  <pre id="version">Loading...</pre>
+  <h1>Smack Task Manager</h1>
+
+  <h2>Tasks</h2>
+  <ul id="task-list">Loading tasks...</ul>
+
+  <h2>Add New Task</h2>
+  <input type="text" id="new-task-title" placeholder="Task title" />
+  <button onclick="createTask()">Add Task</button>
+
+  <script>
+    const apiBase = "/tasks"; // match Go backend routes
+
+    async function fetchTasks() {
+      try {
+        const res = await fetch(apiBase);
+        const tasks = await res.json();
+
+        const list = document.getElementById("task-list");
+        list.innerHTML = "";
+
+        if (tasks.length === 0) {
+          list.innerHTML = "<li>No tasks found</li>";
+          return;
+        }
+
+        tasks.forEach(task => {
+          const li = document.createElement("li");
+          li.textContent = `${task.id}: ${task.title} [${task.status}]`;
+          if (task.status === "done") li.classList.add("task-done");
+
+          // Add complete button
+          const btn = document.createElement("button");
+          btn.textContent = "Mark Done";
+          btn.onclick = () => updateTaskStatus(task.id, "done");
+          li.appendChild(btn);
+
+          list.appendChild(li);
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("task-list").textContent = "Error loading tasks.";
+      }
+    }
+
+    async function createTask() {
+      const title = document.getElementById("new-task-title").value;
+      if (!title) return alert("Task title cannot be empty");
+
+      try {
+        await fetch(apiBase, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title })
+        });
+        document.getElementById("new-task-title").value = "";
+        fetchTasks(); // refresh
+      } catch (err) {
+        console.error(err);
+        alert("Failed to create task");
+      }
+    }
+
+    async function updateTaskStatus(id, status) {
+      try {
+        await fetch(`${apiBase}/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status })
+        });
+        fetchTasks(); // refresh
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update task");
+      }
+    }
+
+    window.onload = fetchTasks;
+  </script>
 </body>
 </html>

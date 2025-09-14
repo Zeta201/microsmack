@@ -10,7 +10,7 @@ metadata:
     app: api
     version: prod
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: api
