@@ -1,28 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: microsmack-ci-dev
+  name: microsmack-ci-template
   namespace: microsmack
 spec:
   serviceAccountName: argo
-  entrypoint: build-and-deploy-dev
+  entrypoint: build-and-deploy
   templates:
-    - name: build-and-deploy-dev
+    - name: build-and-deploy
       dag:
         tasks:
-          - name: build-api-dev
-            template: kaniko-build-api-dev
+          - name: build-api
+            template: kaniko-build-api
           - name: build-web
             template: kaniko-build-web
-          - name: deploy-api-dev
-            template: kubectl-apply-api-dev
-            dependencies: [build-api-dev]
+          - name: deploy-api
+            template: kubectl-apply-api
+            dependencies: [build-api]
           - name: deploy-web
             template: kubectl-apply-web
             dependencies: [build-web]
 
-    # Kaniko build API Dev
-    - name: kaniko-build-api-dev
+    # Kaniko build API
+    - name: kaniko-build-api
       container:
         image: gcr.io/kaniko-project/executor:debug
         command: [sh, -c]
@@ -32,7 +32,7 @@ spec:
             /kaniko/executor \
               --dockerfile=Dockerfile \
               --context=/workspace/smackapi \
-              --destination=docker.io/992220449/smackapi:dev \
+              --destination=docker.io/992220449/smackapi:latest \
               --cache=false
         envFrom:
           - secretRef:
@@ -48,7 +48,7 @@ spec:
           image: alpine/git
           command: ["sh", "-c"]
           args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
+            - git clone --depth=1 --branch main https://github.com/Zeta201/smack.git /workspace
           volumeMounts:
             - name: repo
               mountPath: /workspace
@@ -80,32 +80,35 @@ spec:
           image: alpine/git
           command: ["sh", "-c"]
           args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
+            - git clone --depth=1 --branch main https://github.com/Zeta201/smack.git /workspace
           volumeMounts:
             - name: repo
               mountPath: /workspace
 
-    # Deploy API Dev
-    - name: kubectl-apply-api-dev
+        
+
+    # Deploy API
+    - name: kubectl-apply-api
       metadata:
-        annotations:
-          sidecar.istio.io/inject: "false"
+          annotations:
+            sidecar.istio.io/inject: "false" 
       container:
         image: bitnami/kubectl:latest
         command: [sh, -c]
         args:
           - |
-            kubectl apply -f /workspace/kubernetes/smackapi-dev-deployment.yaml -n microsmack && \
-            kubectl rollout restart deployment/smackapi-dev -n microsmack
+            kubectl apply -f /workspace/kubernetes/smackapi-deployment.yaml -n microsmack && \
+            kubectl apply -f /workspace/kubernetes/smackapi-service.yaml -n microsmack && \
+            kubectl rollout restart deployment/smackapi-api -n microsmack
         volumeMounts:
           - name: repo
             mountPath: /workspace
       initContainers:
         - name: git-clone
           image: alpine/git
-          command: ["sh", "-c"]
+          command: ["sh", -c]
           args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
+            - git clone --depth=1 --branch main https://github.com/Zeta201/smack.git /workspace
           volumeMounts:
             - name: repo
               mountPath: /workspace
@@ -114,7 +117,7 @@ spec:
     - name: kubectl-apply-web
       metadata:
         annotations:
-          sidecar.istio.io/inject: "false"
+          sidecar.istio.io/inject: "false" 
       container:
         image: bitnami/kubectl:latest
         command: [sh, -c]
@@ -123,16 +126,17 @@ spec:
             set -ex
             kubectl apply -f /workspace/kubernetes/web-deployment.yaml -n microsmack
             kubectl apply -f /workspace/kubernetes/web-service.yaml -n microsmack
-            kubectl rollout restart deployment/smackweb -n microsmack
+            kubectl rollout restart deployment smackweb -n microsmack
+
         volumeMounts:
           - name: repo
             mountPath: /workspace
       initContainers:
         - name: git-clone
           image: alpine/git
-          command: ["sh", "-c"]
+          command: ["sh", -c]
           args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
+            - git clone --depth=1 --branch main https://github.com/Zeta201/smack.git /workspace
           volumeMounts:
             - name: repo
               mountPath: /workspace
