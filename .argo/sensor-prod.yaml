@@ -6,9 +6,9 @@ metadata:
 spec:
   serviceAccountName: argo-events-sa
   dependencies:
-    - name: github-main-branch
-      eventSourceName: github-events   # should match your GitHub EventSource
-      eventName: main-branch           # main branch event
+    - name: github-pr
+      eventSourceName: github-events    # same EventSource
+      eventName: pull-request-event     # must match the webhook "name" in EventSource
   triggers:
     - template:
         name: prod-workflow-trigger

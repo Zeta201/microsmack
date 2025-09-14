@@ -6,9 +6,9 @@ metadata:
 spec:
   serviceAccountName: argo-events-sa
   dependencies:
-    - name: github-dev-branch
-      eventSourceName: github-events   # the EventSource that listens to GitHub
-      eventName: dev-branch            # dev branch event
+    - name: github-dev
+      eventSourceName: github-events   # matches your single EventSource
+      eventName: push-event            # must match the webhook "name" in EventSource
   triggers:
     - template:
         name: dev-workflow-trigger
