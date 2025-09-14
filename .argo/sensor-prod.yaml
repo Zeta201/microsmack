@@ -8,7 +8,7 @@ spec:
   dependencies:
     - name: github-pr
       eventSourceName: github-events
-      eventName: pull-request-event   # 👈 must match EventSource key
+      eventName: pull-request-event   # matches EventSource key
   triggers:
     - template:
         name: prod-workflow-trigger

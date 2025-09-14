@@ -8,28 +8,30 @@ spec:
     ports:
       - port: 12000
         targetPort: 12000
+    type: ClusterIP
   github:
-    webhook:
+    # Push event for dev workflow
+    push-event:
       owner: Zeta201
       repository: smack
       events:
         - push
-        - pull_request
       apiToken:
         name: github-secret
         key: token
       webhook:
         endpoint: /push
         port: "12000"
-    example:
+
+    # Pull request event for prod workflow
+    pull-request-event:
       owner: Zeta201
       repository: smack
       events:
-        - push
         - pull_request
       apiToken:
         name: github-secret
         key: token
       webhook:
-        endpoint: /pull
+        endpoint: /pull-request
         port: "12000"

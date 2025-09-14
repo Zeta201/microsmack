@@ -8,7 +8,7 @@ spec:
   dependencies:
     - name: github-dev
       eventSourceName: github-events
-      eventName: push-event     # 👈 must match EventSource key
+      eventName: push-event   # matches EventSource key
   triggers:
     - template:
         name: dev-workflow-trigger
