@@ -48,7 +48,7 @@ spec:
           image: alpine/git
           command: ["sh", "-c"]
           args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
+            - git clone --depth=1 --branch dev https://github.com/Zeta201/smack.git /workspace
           volumeMounts:
             - name: repo
               mountPath: /workspace
@@ -80,7 +80,7 @@ spec:
           image: alpine/git
           command: ["sh", "-c"]
           args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
+            - git clone --depth=1 --branch dev https://github.com/Zeta201/smack.git /workspace
           volumeMounts:
             - name: repo
               mountPath: /workspace
@@ -100,15 +100,6 @@ spec:
         volumeMounts:
           - name: repo
             mountPath: /workspace
-      initContainers:
-        - name: git-clone
-          image: alpine/git
-          command: ["sh", "-c"]
-          args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
-          volumeMounts:
-            - name: repo
-              mountPath: /workspace
 
     # Deploy Web
     - name: kubectl-apply-web
@@ -127,15 +118,6 @@ spec:
         volumeMounts:
           - name: repo
             mountPath: /workspace
-      initContainers:
-        - name: git-clone
-          image: alpine/git
-          command: ["sh", "-c"]
-          args:
-            - git clone --depth=1 --branch dev https://github.com/Zeta201/microsmack.git /workspace
-          volumeMounts:
-            - name: repo
-              mountPath: /workspace
 
   volumes:
     - name: repo
