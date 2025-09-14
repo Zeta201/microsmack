@@ -9,24 +9,27 @@ spec:
       - port: 12000
         targetPort: 12000
   github:
-    push-event:                    # handles push events
-      endpoint: /github            # 👈 same URL for both push + PR
-      port: "12000"
+    webhook:
+      owner: Zeta201
+      repository: smack
       events:
         - push
-      apiToken:
-        name: github-secret
-        key: token
-      owner: Zeta201
-      repository: microsmack
-
-    pull-request-event:            # handles PR events
-      endpoint: /github            # 👈 same URL
-      port: "12000"
-      events:
         - pull_request
       apiToken:
         name: github-secret
         key: token
+      webhook:
+        endpoint: /push
+        port: "12000"
+    example:
       owner: Zeta201
-      repository: microsmack
+      repository: smack
+      events:
+        - push
+        - pull_request
+      apiToken:
+        name: github-secret
+        key: token
+      webhook:
+        endpoint: /pull
+        port: "12000"
