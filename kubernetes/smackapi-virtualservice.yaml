@@ -1,0 +1,26 @@
+# -------------------------------
+# smackapi-virtualservice.yaml
+# -------------------------------
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: smackapi
+  namespace: microsmack
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - smack-gateway
+  http:
+    - match:
+        - uri:
+            prefix: "/api"
+      route:
+        - destination:
+            host: smackapi.microsmack.svc.cluster.local
+            subset: prod
+          weight: 50
+        - destination:
+            host: smackapi.microsmack.svc.cluster.local
+            subset: dev
+          weight: 50

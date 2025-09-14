@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: github-events
+  namespace: argo-events
+spec:
+  service:
+    ports:
+      - port: 12000
+        targetPort: 12000
+  github:
+    webhook:
+      owner: Zeta201
+      repository: smack
+      events:
+        - push
+        - pull_request
+      apiToken:
+        name: github-secret
+        key: token
+      webhook:
+        endpoint: /push
+        port: "12000"
+    example:
+      owner: Zeta201
+      repository: smack
+      events:
+        - push
+        - pull_request
+      apiToken:
+        name: github-secret
+        key: token
+      webhook:
+        endpoint: /push
+        port: "12000"

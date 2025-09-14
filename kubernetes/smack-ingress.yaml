@@ -1,0 +1,28 @@
+# smack-ingress.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: smack-ingress
+  namespace: microsmack
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - smack-gateway
+  http:
+    - match:
+        - uri:
+            exact: "/"   # frontend
+      route:
+        - destination:
+            host: smackweb
+            port:
+              number: 80
+    - match:
+        - uri:
+            prefix: "/api"  # backend
+      route:
+        - destination:
+            host: smackapi-api
+            port:
+              number: 80

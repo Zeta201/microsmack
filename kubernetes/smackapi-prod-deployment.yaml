@@ -1,0 +1,31 @@
+# -------------------------------
+# smackapi-prod-deployment.yaml
+# -------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smackapi-prod
+  namespace: microsmack
+  labels:
+    app: api
+    version: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api
+      version: prod
+  template:
+    metadata:
+      labels:
+        app: api
+        version: prod
+    spec:
+      containers:
+        - name: api
+          image: docker.io/992220449/smackapi:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+      imagePullSecrets:
+        - name: dockerhub-secret

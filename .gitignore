@@ -1,0 +1,6 @@
+brigade/project.yaml
+docker_creds.yaml
+github-secret.yaml
+webhook_secret.yaml
+notes.txt
+.git

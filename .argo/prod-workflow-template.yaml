@@ -1,0 +1,131 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: microsmack-ci-prod
+  namespace: microsmack
+spec:
+  serviceAccountName: argo
+  entrypoint: build-and-deploy-prod
+  templates:
+    - name: build-and-deploy-prod
+      dag:
+        tasks:
+          - name: build-api-prod
+            template: kaniko-build-api-prod
+          - name: build-web
+            template: kaniko-build-web
+          - name: deploy-api-prod
+            template: kubectl-apply-api-prod
+            dependencies: [build-api-prod]
+          - name: deploy-web
+            template: kubectl-apply-web
+            dependencies: [build-web]
+
+    # Kaniko build API Prod
+    - name: kaniko-build-api-prod
+      container:
+        image: gcr.io/kaniko-project/executor:debug
+        command: [sh, -c]
+        args:
+          - |
+            echo "Files in /workspace:" && ls -R /workspace && \
+            /kaniko/executor \
+              --dockerfile=Dockerfile \
+              --context=/workspace/smackapi \
+              --destination=docker.io/992220449/smackapi:latest \
+              --cache=false
+        envFrom:
+          - secretRef:
+              name: docker-credentials
+        volumeMounts:
+          - name: repo
+            mountPath: /workspace
+          - name: docker-config
+            mountPath: /kaniko/.docker
+            readOnly: true
+      initContainers:
+        - name: git-clone
+          image: alpine/git
+          command: ["sh", "-c"]
+          args:
+            - git clone --depth=1 --branch main https://github.com/Zeta201/smack.git /workspace
+          volumeMounts:
+            - name: repo
+              mountPath: /workspace
+
+    # Kaniko build Web (same as dev)
+    - name: kaniko-build-web
+      container:
+        image: gcr.io/kaniko-project/executor:debug
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "Files in /workspace:" && ls -R /workspace && \
+            /kaniko/executor \
+              --dockerfile=Dockerfile \
+              --context=/workspace/web \
+              --destination=docker.io/992220449/smackweb:latest \
+              --cache=false
+        envFrom:
+          - secretRef:
+              name: docker-credentials
+        volumeMounts:
+          - name: repo
+            mountPath: /workspace
+          - name: docker-config
+            mountPath: /kaniko/.docker
+            readOnly: true
+      initContainers:
+        - name: git-clone
+          image: alpine/git
+          command: ["sh", "-c"]
+          args:
+            - git clone --depth=1 --branch main https://github.com/Zeta201/smack.git /workspace
+          volumeMounts:
+            - name: repo
+              mountPath: /workspace
+
+    # Deploy API Prod
+    - name: kubectl-apply-api-prod
+      metadata:
+        annotations:
+          sidecar.istio.io/inject: "false"
+      container:
+        image: bitnami/kubectl:latest
+        command: [sh, -c]
+        args:
+          - |
+            kubectl apply -f /workspace/kubernetes/smackapi-prod-deployment.yaml -n microsmack && \
+            kubectl apply -f /workspace/kubernetes/smackapi-service.yaml -n microsmack && \
+            kubectl rollout restart deployment/smackapi-prod -n microsmack
+        volumeMounts:
+          - name: repo
+            mountPath: /workspace
+
+    # Deploy Web (same as dev)
+    - name: kubectl-apply-web
+      metadata:
+        annotations:
+          sidecar.istio.io/inject: "false"
+      container:
+        image: bitnami/kubectl:latest
+        command: [sh, -c]
+        args:
+          - |
+            set -ex
+            kubectl apply -f /workspace/kubernetes/web-deployment.yaml -n microsmack
+            kubectl apply -f /workspace/kubernetes/web-service.yaml -n microsmack
+            kubectl rollout restart deployment/smackweb -n microsmack
+        volumeMounts:
+          - name: repo
+            mountPath: /workspace
+
+  volumes:
+    - name: repo
+      emptyDir: {}
+    - name: docker-config
+      secret:
+        secretName: docker-credentials
+        items:
+          - key: .dockerconfigjson
+            path: config.json

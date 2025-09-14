@@ -1,0 +1,14 @@
+# web-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: smackweb
+  namespace: microsmack
+spec:
+  type: NodePort
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080  # Exposed port for external access

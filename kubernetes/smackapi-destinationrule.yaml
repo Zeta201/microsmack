@@ -1,0 +1,17 @@
+# -------------------------------
+# smackapi-destinationrule.yaml
+# -------------------------------
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: smackapi
+  namespace: microsmack
+spec:
+  host: smackapi.microsmack.svc.cluster.local
+  subsets:
+    - name: prod
+      labels:
+        version: prod
+    - name: dev
+      labels:
+        version: dev
